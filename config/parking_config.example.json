@@ -1,0 +1,13 @@
+{
+  "camera_id": "phone_camera_01",
+  "analysis_interval_minutes": 5,
+  "snapshot_retention_count": 10,
+  "occupancy_threshold": 0.15,
+  "unknown_threshold": 0.05,
+  "confidence_threshold": 0.25,
+  "image_size": 960,
+  "model_path": "models/yolov8n-seg.pt",
+  "frame_width": 0,
+  "frame_height": 0,
+  "slots": []
+}

@@ -1,0 +1,1 @@
+"""Parking occupancy web application."""

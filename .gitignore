@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+config/parking_config.json
+models/*.pt
+data/*
+!data/.gitkeep
+outputs/logs/*
+!outputs/logs/.gitkeep
+outputs/snapshots/*
+!outputs/snapshots/.gitkeep

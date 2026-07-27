@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f3ef">
+    <title>주차 점유 모니터</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">AX R&amp;D PARKING</p>
+        <h1>주차 점유 모니터</h1>
+      </div>
+      <div class="server-state">
+        <span id="serverDot" class="status-dot" aria-hidden="true"></span>
+        <span id="serverText">서버 확인 중</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="camera-panel" aria-labelledby="cameraHeading">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">01</p>
+            <h2 id="cameraHeading">카메라 및 주차면 설정</h2>
+          </div>
+          <div class="mode-tabs" role="tablist" aria-label="작업 모드">
+            <button id="setupTab" class="tab-button active" type="button">설정</button>
+            <button id="monitorTab" class="tab-button" type="button">모니터링</button>
+          </div>
+        </div>
+
+        <div id="cameraStage" class="camera-stage">
+          <video id="cameraVideo" autoplay muted playsinline></video>
+          <canvas id="overlayCanvas"></canvas>
+          <div id="cameraEmpty" class="camera-empty">
+            <strong>카메라가 연결되지 않았습니다.</strong>
+            <span>휴대폰 후면 카메라를 연결해 CCTV 화면을 맞춰주세요.</span>
+          </div>
+        </div>
+
+        <div class="camera-actions">
+          <button id="startCameraButton" class="button primary" type="button">카메라 연결</button>
+          <button id="captureButton" class="button" type="button" disabled>기준 프레임 캡처</button>
+          <button id="undoPointButton" class="button subtle" type="button" disabled>마지막 점 취소</button>
+        </div>
+
+        <p id="cameraNotice" class="notice">
+          주차면 저장 후 휴대폰 위치가 바뀌면 좌표를 다시 설정해야 합니다.
+        </p>
+
+        <div id="setupTools" class="setup-tools">
+          <div class="slot-entry">
+            <label for="slotIdInput">주차면 ID</label>
+            <input id="slotIdInput" type="text" maxlength="20" placeholder="예: A1">
+            <button id="addSlotButton" class="button dark" type="button" disabled>주차면 추가</button>
+          </div>
+          <p id="pointGuide" class="point-guide">기준 프레임을 캡처한 뒤 주차면의 네 모서리를 순서대로 선택하세요.</p>
+          <div id="slotEditorList" class="slot-editor-list"></div>
+          <button id="saveConfigButton" class="button primary full" type="button">설정 저장</button>
+        </div>
+      </section>
+
+      <aside class="monitor-panel" aria-labelledby="monitorHeading">
+        <div class="section-heading compact">
+          <div>
+            <p class="section-index">02</p>
+            <h2 id="monitorHeading">점유 현황</h2>
+          </div>
+          <span id="monitorBadge" class="monitor-badge">정지</span>
+        </div>
+
+        <div class="occupancy-summary">
+          <div>
+            <span>전체 점유율</span>
+            <strong id="occupancyRate">0.0<small>%</small></strong>
+          </div>
+          <div class="summary-counts">
+            <span><b id="occupiedCount">0</b> 점유</span>
+            <span><b id="emptyCount">0</b> 비어 있음</span>
+            <span><b id="unknownCount">0</b> 판단 보류</span>
+          </div>
+        </div>
+
+        <div class="monitor-actions">
+          <button id="startMonitorButton" class="button primary" type="button">모니터링 시작</button>
+          <button id="stopMonitorButton" class="button" type="button" disabled>정지</button>
+          <button id="analyzeButton" class="button dark" type="button" disabled>지금 분석</button>
+        </div>
+
+        <dl class="runtime-details">
+          <div>
+            <dt>분석 간격</dt>
+            <dd id="intervalText">5분</dd>
+          </div>
+          <div>
+            <dt>마지막 분석</dt>
+            <dd id="lastAnalyzed">-</dd>
+          </div>
+          <div>
+            <dt>캡처 보관</dt>
+            <dd id="retentionText">0 / 10장</dd>
+          </div>
+          <div>
+            <dt>AI 모델</dt>
+            <dd id="modelState">확인 전</dd>
+          </div>
+        </dl>
+
+        <div class="slot-results-header">
+          <h3>주차면 상태</h3>
+          <span id="analysisState">대기 중</span>
+        </div>
+        <div id="slotResults" class="slot-results">
+          <p class="empty-list">등록된 주차면이 없습니다.</p>
+        </div>
+
+        <div class="recent-heading">
+          <h3>최근 캡처</h3>
+          <span>최근 10장만 보관</span>
+        </div>
+        <div id="snapshotList" class="snapshot-list">
+          <p class="empty-list">아직 분석한 이미지가 없습니다.</p>
+        </div>
+      </aside>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
