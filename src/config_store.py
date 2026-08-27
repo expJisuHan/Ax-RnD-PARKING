@@ -14,6 +14,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "unknown_threshold": 0.05,
     "confidence_threshold": 0.25,
     "image_size": 960,
+    "slot_padding_ratio": 0.1,
+    "occlusion_guard": True,
+    "occlusion_neighbor_ratio": 0.8,
+    "large_vehicle_area_ratio": 1.6,
     "model_path": "models/yolov8n-seg.pt",
     "frame_width": 0,
     "frame_height": 0,
@@ -61,6 +65,24 @@ def validate_config(raw: dict[str, Any]) -> dict[str, Any]:
     if isinstance(image_size, bool) or not isinstance(image_size, int) or image_size < 320:
         raise ConfigValidationError("image_size must be an integer of 320 or more.")
 
+    padding = _as_number(config["slot_padding_ratio"], "slot_padding_ratio")
+    if not 0 <= padding <= 1:
+        raise ConfigValidationError("slot_padding_ratio must be between 0 and 1.")
+    config["slot_padding_ratio"] = padding
+
+    if not isinstance(config["occlusion_guard"], bool):
+        raise ConfigValidationError("occlusion_guard must be true or false.")
+
+    neighbor_ratio = _as_number(config["occlusion_neighbor_ratio"], "occlusion_neighbor_ratio")
+    if not 0 <= neighbor_ratio <= 3:
+        raise ConfigValidationError("occlusion_neighbor_ratio must be between 0 and 3.")
+    config["occlusion_neighbor_ratio"] = neighbor_ratio
+
+    large_ratio = _as_number(config["large_vehicle_area_ratio"], "large_vehicle_area_ratio")
+    if large_ratio < 1:
+        raise ConfigValidationError("large_vehicle_area_ratio must be 1 or more.")
+    config["large_vehicle_area_ratio"] = large_ratio
+
     slots = config.get("slots")
     if not isinstance(slots, list):
         raise ConfigValidationError("slots must be an array.")
@@ -77,8 +99,8 @@ def validate_config(raw: dict[str, Any]) -> dict[str, Any]:
             raise ConfigValidationError(f"Duplicate slot id: {slot_id}")
 
         points = slot.get("points")
-        if not isinstance(points, list) or len(points) != 4:
-            raise ConfigValidationError(f"{slot_id} must contain exactly four points.")
+        if not isinstance(points, list) or len(points) < 4:
+            raise ConfigValidationError(f"{slot_id} must contain at least four points.")
 
         normalized_points: list[list[float]] = []
         for point_index, point in enumerate(points):

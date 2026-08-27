@@ -11,3 +11,5 @@ outputs/logs/*
 !outputs/logs/.gitkeep
 outputs/snapshots/*
 !outputs/snapshots/.gitkeep
+
+주차장_점유_회의요약_및_개발방향.txt

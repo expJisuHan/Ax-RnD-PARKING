@@ -10,7 +10,7 @@ import requests
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run a live parking API smoke test.")
-    parser.add_argument("--base-url", default="http://127.0.0.1:8000")
+    parser.add_argument("--base-url", default="http://127.0.0.1:8001")
     args = parser.parse_args()
     base_url = args.base_url.rstrip("/")
 

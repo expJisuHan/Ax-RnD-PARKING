@@ -63,25 +63,42 @@ def save_snapshot(image: Any, timestamp: datetime) -> Path:
     return path
 
 
+CSV_FIELDNAMES = [
+    "timestamp",
+    "total_slots",
+    "occupied_slots",
+    "empty_slots",
+    "unknown_slots",
+    "occlusion_risk_slots",
+    "occupancy_rate",
+    "detected_vehicles",
+    "model_ready",
+    "snapshot",
+    "slots_json",
+]
+
+
+def rotate_csv_log_if_schema_changed() -> None:
+    """Older logs lack newer columns, so archive them instead of misaligning rows."""
+    if not CSV_LOG.exists():
+        return
+    with CSV_LOG.open("r", encoding="utf-8-sig", newline="") as csv_file:
+        header = next(csv.reader(csv_file), None)
+    if header == CSV_FIELDNAMES:
+        return
+    stamp = datetime.now(SEOUL).strftime("%Y%m%d_%H%M%S")
+    CSV_LOG.replace(CSV_LOG.with_name(f"{CSV_LOG.stem}_{stamp}.csv"))
+
+
 def append_logs(result: dict[str, Any]) -> None:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     with JSONL_LOG.open("a", encoding="utf-8") as jsonl_file:
         jsonl_file.write(json.dumps(result, ensure_ascii=False) + "\n")
 
+    rotate_csv_log_if_schema_changed()
     csv_exists = CSV_LOG.exists()
     with CSV_LOG.open("a", encoding="utf-8-sig", newline="") as csv_file:
-        fieldnames = [
-            "timestamp",
-            "total_slots",
-            "occupied_slots",
-            "empty_slots",
-            "unknown_slots",
-            "occupancy_rate",
-            "detected_vehicles",
-            "model_ready",
-            "snapshot",
-            "slots_json",
-        ]
+        fieldnames = CSV_FIELDNAMES
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         if not csv_exists:
             writer.writeheader()
@@ -98,6 +115,20 @@ def read_latest_log() -> dict[str, Any] | None:
         return None
     lines = JSONL_LOG.read_text(encoding="utf-8").splitlines()
     return json.loads(lines[-1]) if lines else None
+
+
+async def read_uploaded_image(upload: UploadFile) -> Any:
+    content_type = upload.content_type or ""
+    if not content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Only image uploads are supported.")
+
+    image_bytes = await upload.read()
+    if len(image_bytes) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image size must be 15 MB or less.")
+    try:
+        return decode_image(image_bytes)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 ensure_runtime_directories()
@@ -137,19 +168,26 @@ def save_config(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
     return {"saved": True, "config": config}
 
 
+@app.post("/api/slots/suggest")
+async def suggest_slots(image: UploadFile = File(...)) -> dict[str, Any]:
+    """Propose slot polygons from vehicles already parked in the reference frame."""
+    frame = await read_uploaded_image(image)
+    try:
+        config = config_store.load()
+        suggestion = analyzer.suggest_slots(frame, config)
+    except (ValueError, ConfigValidationError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Slot suggestion failed: {exc}") from exc
+    return suggestion
+
+
 @app.post("/api/analyze")
 async def analyze_frame(image: UploadFile = File(...)) -> dict[str, Any]:
     global latest_result
 
-    content_type = image.content_type or ""
-    if not content_type.startswith("image/"):
-        raise HTTPException(status_code=415, detail="Only image uploads are supported.")
-
-    image_bytes = await image.read()
-    if len(image_bytes) > 15 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="Image size must be 15 MB or less.")
+    frame = await read_uploaded_image(image)
     try:
-        frame = decode_image(image_bytes)
         config = config_store.load()
         timestamp = datetime.now(SEOUL)
         snapshot_path = save_snapshot(frame, timestamp)

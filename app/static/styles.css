@@ -303,6 +303,65 @@ h3 {
   font-size: 13px;
 }
 
+.candidate-section {
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: rgba(61, 127, 214, 0.06);
+}
+
+.candidate-section.hidden {
+  display: none;
+}
+
+.candidate-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.candidate-heading h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.candidate-hint {
+  margin: 8px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.candidate-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.candidate-item {
+  min-height: 46px;
+  padding: 6px 10px;
+  border: 1px solid #3d7fd6;
+  border-radius: var(--radius);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+}
+
+.candidate-item span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.candidate-item.selected {
+  border-color: var(--unknown);
+  background: rgba(224, 161, 41, 0.14);
+}
+
 .slot-editor-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -584,6 +643,7 @@ h3 {
   }
 
   .slot-editor-list,
+  .candidate-list,
   .slot-results {
     grid-template-columns: 1fr;
   }

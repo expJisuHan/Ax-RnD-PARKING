@@ -44,6 +44,7 @@
         <div class="camera-actions">
           <button id="startCameraButton" class="button primary" type="button">카메라 연결</button>
           <button id="captureButton" class="button" type="button" disabled>기준 프레임 캡처</button>
+          <button id="suggestSlotsButton" class="button dark" type="button" disabled>AI 슬롯 추천</button>
           <button id="undoPointButton" class="button subtle" type="button" disabled>마지막 점 취소</button>
         </div>
 
@@ -58,6 +59,18 @@
             <button id="addSlotButton" class="button dark" type="button" disabled>주차면 추가</button>
           </div>
           <p id="pointGuide" class="point-guide">기준 프레임을 캡처한 뒤 주차면의 네 모서리를 순서대로 선택하세요.</p>
+
+          <div id="candidateSection" class="candidate-section hidden">
+            <div class="candidate-heading">
+              <h3>AI 추천 주차면</h3>
+              <button id="clearCandidatesButton" class="mini-button" type="button">추천 지우기</button>
+            </div>
+            <p class="candidate-hint">
+              추천 영역을 화면에서 직접 누르거나 아래 목록에서 선택한 뒤 ID를 확인하고 추가하세요.
+            </p>
+            <div id="candidateList" class="candidate-list"></div>
+          </div>
+
           <div id="slotEditorList" class="slot-editor-list"></div>
           <button id="saveConfigButton" class="button primary full" type="button">설정 저장</button>
         </div>
